@@ -1,0 +1,18 @@
+form {
+    visibility: hidden;
+}
+
+.board {
+    box-shadow: 0 0 0 1px black;
+    width: 122px;
+    height: 122px;
+}
+
+#gameboard {
+    width: 372px;
+    height: 372px;
+    background-image: url('images/gameboard.svg');
+    background-repeat: no-repeat;
+    display: flex;
+    flex-flow: wrap;
+}
