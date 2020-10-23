@@ -3,11 +3,13 @@ const Game = (function() {
     const player2 = Player();
     player1.marker = "X";
     player2.marker = "O";
+    let count = 0; //declared here so we can reset it when the game starts
     const start = function(event) {
         event.preventDefault();
         const element = event.target;
         player1.name = element[0].value;
         player2.name = element[1].value;
+        count = 0;
         console.log("you called start.");
     };
     const getPlayer = function(number) {
@@ -16,7 +18,6 @@ const Game = (function() {
         } return player2;
     };
     const countCreator = () => { //object prototype that can count up
-        let count = 0;
         return () => {
             count++;
             console.log(`count is ${count}`);
@@ -25,16 +26,12 @@ const Game = (function() {
             } return "X";
         };
     };
-
     const countTurn = countCreator(); //keep track of turns by calling countTurn()
-
-    const play = function(event) {
-        const element = event.target;
+    const play = function(element) {
         const whoseTurn = countTurn(); //returns X or O
         console.log(`board position is ${element.dataset.index}`);
         return [whoseTurn, element.dataset.index];
     }
-
     const threeInARow = [
         ['0','1','2'], //top row
         ['3','4','5'], //mid row
@@ -71,7 +68,6 @@ const Game = (function() {
         check = itemsToCheck.some((isWinner), currentBoard);
         return check; //true or false
     }; 
-
     return {start, getPlayer, play, winner};
 });
 
@@ -108,10 +104,17 @@ const Board = (function() {
 })();
 
 const View = (function() {
-    const showPlayer = function(player) {
-        console.log("you called showPlayer. player is " + player);
+    const setPlayer = function(marker, player1, player2) {
+        console.log(`you called setPlayer. marker is ${marker}, player1 is ${player1}, player2 is ${player2}`);
         const element = document.querySelector("#currentPlayer");
-        return element.textContent=`It's ${player.name}'s turn`;
+        const space = document.querySelectorAll("#gameboard div");
+        if (marker === 'X') {
+            return element.textContent=`It's ${player1.name}'s turn`;
+        } else {
+            space.classList.toggle("cursorX");
+            space.classList.toggle("cursorO");
+            return element.textContent=`It's ${player2.name}'s turn`;
+        }
     };
     const gameOver = function(marker, player1, player2) {
         console.log(`you called gameOver. marker is ${marker}`);
@@ -122,18 +125,25 @@ const View = (function() {
             return element.textContent=`Game over! ${player2.name} wins`
         };
     };
-    const fillBoard = (spaces) => {
+    const update = (action, spaces) => {
         spaces.forEach((element, index) => {
             const space = document.querySelector(`#gameboard div[data-index='${index}']`);
-            if (element != "") {
-                space.classList.add(`marker${element}`);
-                space.classList.add("selected");
-                space.classList.remove("available");
-            } else {
-                space.classList.add("available");
-            };
+            if (action == 'fill') {
+                if (element != "") {
+                    space.classList.add(`marker${element}`);
+                    space.classList.add('selected');
+                    space.classList.remove("available");
+                } else {
+                    space.classList.add('available');
+                };
+            } else if (action == 'clear') {
+                space.classList = "";
+                space.classList.add('available');
+            } else { //action == 'disable'
+                space.classList.add('selected');
+            }
         });
-    }
+    };
     const toggleVisibility = () => {
         form.classList.toggle('hidden');
         restart.classList.toggle('hidden');
@@ -141,7 +151,7 @@ const View = (function() {
     const resetForm = () => {
         form.reset();
     }
-    return {showPlayer, fillBoard, toggleVisibility, resetForm, gameOver};
+    return {setPlayer, update, toggleVisibility, resetForm, gameOver};
 });
 
 const game = Game();
@@ -151,8 +161,8 @@ const restart = document.querySelector("#restart");
 const boardDom = document.querySelector("#gameboard");
 function setupGame(event) {
     game.start(event);
-    view.fillBoard(Board.spaces);
-    view.showPlayer(game.getPlayer(1));
+    view.update('fill', Board.spaces);
+    view.setPlayer('X', game.getPlayer(1), game.getPlayer(2));
     view.toggleVisibility();
 };
 function playTurn(event) {
@@ -161,13 +171,15 @@ function playTurn(event) {
         event.preventDefault();
         return false;
     } else {
-        const turn = game.play(event); //turn will equal an array with a marker and a board position
+        const turn = game.play(element); //turn will equal an array with a marker and a board position
         const update = Board.update(turn);
         console.log(update);
-        view.fillBoard(Board.spaces);
+        view.setPlayer(turn[0], game.getPlayer(1), game.getPlayer(2))
+        view.update('fill', Board.spaces);
         const won = game.winner(turn[1], Board.spaces);
         if (won) {
-            view.gameOver(turn[0], game.getPlayer(1), game.getPlayer(2)); //pass the last marker played
+            view.gameOver(turn[0], game.getPlayer(1), game.getPlayer(2)); //passes the last marker played
+            view.update('disable', Board.spaces);
         }
     }
 };
@@ -175,7 +187,7 @@ function playNew(event) {
     Board.clear();
     view.resetForm();
     view.toggleVisibility();
-    view.fillBoard(Board.spaces); //this needs to remove old marker classes if being called after .clear()
+    view.update('clear', Board.spaces);
 }
 
 form.addEventListener("submit", setupGame);
