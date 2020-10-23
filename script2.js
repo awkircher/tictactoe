@@ -104,21 +104,27 @@ const Board = (function() {
 })();
 
 const View = (function() {
-    const setPlayer = function(marker, player1, player2) {
-        console.log(`you called setPlayer. marker is ${marker}, player1 is ${player1}, player2 is ${player2}`);
+    const setPlayer = function(lastMarker, player1, player2) {
+        console.log(`you called setPlayer. last marker is ${lastMarker}, player1 is ${player1}, player2 is ${player2}`);
         const element = document.querySelector("#currentPlayer");
-        const space = document.querySelectorAll("#gameboard div");
-        if (marker === 'X') {
+        const spaces = document.querySelector("#gameboard");
+        if (lastMarker === null) {
+            spaces.classList.remove("cursorO");
+            spaces.classList.add("cursorX");
             return element.textContent=`It's ${player1.name}'s turn`;
-        } else {
-            space.classList.toggle("cursorX");
-            space.classList.toggle("cursorO");
+        } else if (lastMarker === "X") {
+            spaces.classList.remove("cursorX");
+            spaces.classList.add("cursorO");
             return element.textContent=`It's ${player2.name}'s turn`;
+        } else {
+            spaces.classList.remove("cursorO");
+            spaces.classList.add("cursorX");
+            return element.textContent=`It's ${player1.name}'s turn`;
         }
     };
     const gameOver = function(marker, player1, player2) {
         console.log(`you called gameOver. marker is ${marker}`);
-        const element = document.querySelector("#gameOver");
+        const element = document.querySelector("#currentPlayer");
         if (marker == "X") {
             return element.textContent=`Game over! ${player1.name} wins`;
         } else {
@@ -132,37 +138,37 @@ const View = (function() {
                 if (element != "") {
                     space.classList.add(`marker${element}`);
                     space.classList.add('selected');
-                    space.classList.remove("available");
-                } else {
-                    space.classList.add('available');
                 };
             } else if (action == 'clear') {
                 space.classList = "";
-                space.classList.add('available');
             } else { //action == 'disable'
                 space.classList.add('selected');
             }
-        });
+        }); 
+        if (action == 'clear') {
+            document.querySelector("#currentPlayer").textContent = "";
+        };
     };
     const toggleVisibility = () => {
         form.classList.toggle('hidden');
         restart.classList.toggle('hidden');
+        boardDom.classList.toggle('hidden');
     }
     const resetForm = () => {
-        form.reset();
+        document.querySelector("#formContainer form").reset();
     }
     return {setPlayer, update, toggleVisibility, resetForm, gameOver};
 });
 
 const game = Game();
 const view = View();
-const form = document.querySelector("#formContainer form");
+const form = document.querySelector("#formContainer");
 const restart = document.querySelector("#restart");
 const boardDom = document.querySelector("#gameboard");
 function setupGame(event) {
     game.start(event);
     view.update('fill', Board.spaces);
-    view.setPlayer('X', game.getPlayer(1), game.getPlayer(2));
+    view.setPlayer(null, game.getPlayer(1), game.getPlayer(2));
     view.toggleVisibility();
 };
 function playTurn(event) {
