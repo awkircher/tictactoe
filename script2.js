@@ -42,7 +42,7 @@ const Game = (function() {
         ['0','4','8'], //diagonal L->R
         ['2','4','6'], //diagonal R->L
     ];
-    const isWinner = function(element) { //this is 'currentBoard' which is Board.spaces
+    const isWinner = function(element) { //'this' is 'currentBoard' which is Board.spaces
         const a = this[element[0]];
         const b = this[element[1]];
         const c = this[element[2]];
@@ -127,6 +127,8 @@ const View = (function() {
         const element = document.querySelector("#currentPlayer");
         if (marker == "X") {
             return element.textContent=`Game over! ${player1.name} wins`;
+        } else if (marker == "tie") {
+            return element.textContent=`Game over! It was a tie.`;
         } else {
             return element.textContent=`Game over! ${player2.name} wins`
         };
@@ -186,6 +188,10 @@ function playTurn(event) {
         if (won) {
             view.gameOver(turn[0], game.getPlayer(1), game.getPlayer(2)); //passes the last marker played
             view.update('disable', Board.spaces);
+        } else {
+            if (!Board.spaces.includes('')) {
+                view.gameOver('tie');
+            }
         }
     }
 };
