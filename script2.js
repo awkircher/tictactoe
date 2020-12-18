@@ -32,6 +32,13 @@ const Game = (function() {
         console.log(`board position is ${element.dataset.index}`);
         return [whoseTurn, element.dataset.index];
     }
+    //threeInARow, isWinner(), and winner() all work together to determine if a move
+    //has resulted in a win or not. threeInARow holds all the winning combinations.
+    //isWinner() does an equality check to see if the board positions passed in are
+    //all filled with the same game marker. based on which board positions are filled
+    //winner() creates a secondary array of winning combinations to check, 
+    //then calls isWinner() on each one to determine if there's a winner. Only checking
+    //the secondary array prevents false positives from an empty row.
     const threeInARow = [
         ['0','1','2'], //top row
         ['3','4','5'], //mid row
